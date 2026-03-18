@@ -7,7 +7,7 @@ name = "sphinx-badges"
 version = "0.1.0"
 authors = [{ name="Nicholas Geneva" },]
 description = "Bootstrap-style status badges for Sphinx documentation"
-readme = "README.rst"
+readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.9"
 keywords = ["sphinx", "documentation", "badges"]
