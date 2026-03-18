@@ -3,7 +3,7 @@
 from docutils.parsers.rst import directives
 from sphinx.util.docutils import SphinxDirective
 
-from .nodes import badge, badge_list, badge_filter
+from .nodes import badge, badge_filter, badge_list
 
 
 class BadgesDirective(SphinxDirective):

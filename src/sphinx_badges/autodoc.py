@@ -18,7 +18,6 @@ from __future__ import annotations
 import re
 from typing import Any
 
-
 # Regex for a numpy-style section underline (at least 2 dashes or equals).
 _UNDERLINE_RE = re.compile(r"^[-=]{2,}\s*$")
 

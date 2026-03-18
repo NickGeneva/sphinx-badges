@@ -12,11 +12,11 @@ from docutils import nodes as docutils_nodes
 from sphinx.addnodes import desc_content
 from sphinx.application import Sphinx
 
-from .nodes import badge, badge_filter, badge_list
-from .directives import BadgesDirective, BadgeFilterDirective
-from .roles import BadgeRole
-from .collectors import init_badge_env, purge_badges, merge_badges
 from .autodoc import process_docstring
+from .collectors import init_badge_env, merge_badges, purge_badges
+from .directives import BadgeFilterDirective, BadgesDirective
+from .nodes import badge, badge_filter, badge_list
+from .roles import BadgeRole
 
 __version__ = "0.1.0"
 
@@ -26,7 +26,11 @@ _DEFAULT_COLOR = "#6c757d"
 _DEFAULT_DEFINITIONS: dict[str, dict[str, str]] = {
     "stable": {"label": "Stable", "color": "#198754", "text_color": "#ffffff"},
     "beta": {"label": "Beta", "color": "#0dcaf0", "text_color": "#000000"},
-    "experimental": {"label": "Experimental", "color": "#ffc107", "text_color": "#000000"},
+    "experimental": {
+        "label": "Experimental",
+        "color": "#ffc107",
+        "text_color": "#000000",
+    },
     "deprecated": {"label": "Deprecated", "color": "#dc3545", "text_color": "#ffffff"},
     "new": {"label": "New", "color": "#0d6efd", "text_color": "#ffffff"},
 }
@@ -69,15 +73,17 @@ def _resolve_badge(config: Any, badge_id: str) -> dict[str, str]:
 
     # Layer: exact match → name-only match in user defs → built-in defaults by name.
     defn: dict = {}
-    defn.update(_DEFAULT_DEFINITIONS.get(name, {}))           # built-in by name
-    defn.update(_DEFAULT_DEFINITIONS.get(badge_id, {}))       # built-in exact
-    defn.update(user_defs.get(name, {}))                      # user by name
-    defn.update(user_defs.get(badge_id, {}))                  # user exact
+    defn.update(_DEFAULT_DEFINITIONS.get(name, {}))  # built-in by name
+    defn.update(_DEFAULT_DEFINITIONS.get(badge_id, {}))  # built-in exact
+    defn.update(user_defs.get(name, {}))  # user by name
+    defn.update(user_defs.get(badge_id, {}))  # user exact
 
     fallback_label = name.replace("_", " ").title() if name else badge_id
     return {
         "label": defn.get("label", fallback_label),
-        "color": defn.get("color", getattr(config, "badges_default_color", _DEFAULT_COLOR)),
+        "color": defn.get(
+            "color", getattr(config, "badges_default_color", _DEFAULT_COLOR)
+        ),
         "text_color": defn.get("text_color", "#ffffff"),
     }
 
@@ -102,8 +108,7 @@ def visit_badge_html(self, node: badge) -> None:
     style = f"background-color:{defn['color']};color:{defn['text_color']};"
     cls = _badge_classes(cfg)
     self.body.append(
-        f'<span class="{cls}" data-badge-id="{badge_id}" style="{style}">'
-        f"{label}</span>"
+        f'<span class="{cls}" data-badge-id="{badge_id}" style="{style}">{label}</span>'
     )
     raise docutils_nodes.SkipNode
 
@@ -191,12 +196,16 @@ def depart_badge_filter_html(self, node: badge_filter) -> None:
     self.body.append("</div>")  # .sphinx-badge-filter-content
     self.body.append("</div>")  # .sphinx-badge-filter
 
+
 def _maybe_connect_autodoc(app: Sphinx) -> None:
     """Connect autodoc integration after all extensions are loaded."""
     if "sphinx.ext.autodoc" in app.extensions:
         app.connect("autodoc-process-docstring", process_docstring)
 
-def _move_badges_to_top(app: Sphinx, doctree: docutils_nodes.document, docname: str) -> None:
+
+def _move_badges_to_top(
+    app: Sphinx, doctree: docutils_nodes.document, docname: str
+) -> None:
     """Move badge_list nodes to the front of every desc_content block.
 
     Activated when ``badges_position = "top"`` is set in ``conf.py``.
@@ -263,7 +272,9 @@ def write_badge_data_js(app: Sphinx, exception: Exception | None) -> None:
         fh.write(f"window.SPHINX_BADGES_DEFINITIONS = {json.dumps(merged_defs)};\n")
         fh.write(f"window.SPHINX_BADGES_STYLE = {json.dumps(badge_style)};\n")
         fh.write(f"window.SPHINX_BADGES_GROUP_LABELS = {json.dumps(group_labels)};\n")
-        fh.write(f"window.SPHINX_BADGES_SHOW_PAGE_BADGES = {json.dumps(show_page_badges)};\n")
+        fh.write(
+            f"window.SPHINX_BADGES_SHOW_PAGE_BADGES = {json.dumps(show_page_badges)};\n"
+        )
 
 
 # ---------------------------------------------------------------------------
