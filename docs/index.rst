@@ -10,7 +10,7 @@ Quick inline usage with the ``:badge:`` role:
 
    .. toctree::
       :maxdepth: 1
-      :caption: API Reference
+      :caption: Sample API Reference
 
       api/stable_function
       api/beta_class

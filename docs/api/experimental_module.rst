@@ -1,8 +1,6 @@
 experimental_module
 ===================
 
-.. badges:: stability:experimental area:utils
-
 Functionality that is subject to breaking changes without notice.
 Use at your own risk.
 

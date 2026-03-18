@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from docutils import nodes as docutils_nodes
+from sphinx.addnodes import desc_content
 from sphinx.application import Sphinx
 
 from .nodes import badge, badge_filter, badge_list
@@ -190,11 +191,27 @@ def depart_badge_filter_html(self, node: badge_filter) -> None:
     self.body.append("</div>")  # .sphinx-badge-filter-content
     self.body.append("</div>")  # .sphinx-badge-filter
 
-
 def _maybe_connect_autodoc(app: Sphinx) -> None:
     """Connect autodoc integration after all extensions are loaded."""
     if "sphinx.ext.autodoc" in app.extensions:
         app.connect("autodoc-process-docstring", process_docstring)
+
+def _move_badges_to_top(app: Sphinx, doctree: docutils_nodes.document, docname: str) -> None:
+    """Move badge_list nodes to the front of every desc_content block.
+
+    Activated when ``badges_position = "top"`` is set in ``conf.py``.
+    Handles both hand-written RST and autodoc-generated pages uniformly.
+    """
+    if getattr(app.config, "badges_position", "bottom") != "top":
+        return
+    for container in doctree.traverse(desc_content):
+        badge_nodes = [c for c in container.children if isinstance(c, badge_list)]
+        if not badge_nodes:
+            continue
+        for bn in badge_nodes:
+            container.remove(bn)
+        for i, bn in enumerate(badge_nodes):
+            container.insert(i, bn)
 
 
 def _skip_node(self, node: Any) -> None:
@@ -237,6 +254,7 @@ def write_badge_data_js(app: Sphinx, exception: Exception | None) -> None:
 
     badge_style: str = getattr(app.config, "badges_style", "rounded")
     group_labels: dict = getattr(app.config, "badges_group_labels", {})
+    show_page_badges: bool = bool(getattr(app.config, "badges_show_page_badges", False))
 
     out_path = os.path.join(static_dir, "badge-data.js")
     with open(out_path, "w", encoding="utf-8") as fh:
@@ -245,6 +263,7 @@ def write_badge_data_js(app: Sphinx, exception: Exception | None) -> None:
         fh.write(f"window.SPHINX_BADGES_DEFINITIONS = {json.dumps(merged_defs)};\n")
         fh.write(f"window.SPHINX_BADGES_STYLE = {json.dumps(badge_style)};\n")
         fh.write(f"window.SPHINX_BADGES_GROUP_LABELS = {json.dumps(group_labels)};\n")
+        fh.write(f"window.SPHINX_BADGES_SHOW_PAGE_BADGES = {json.dumps(show_page_badges)};\n")
 
 
 # ---------------------------------------------------------------------------
@@ -258,6 +277,8 @@ def setup(app: Sphinx) -> dict[str, Any]:
     app.add_config_value("badges_default_color", default=_DEFAULT_COLOR, rebuild="html")
     app.add_config_value("badges_style", default="rounded", rebuild="html")
     app.add_config_value("badges_group_labels", default={}, rebuild="html")
+    app.add_config_value("badges_position", default="bottom", rebuild="html")
+    app.add_config_value("badges_show_page_badges", default=False, rebuild="html")
 
     # Nodes.
     app.add_node(
@@ -302,6 +323,7 @@ def setup(app: Sphinx) -> dict[str, Any]:
     app.connect("builder-inited", _maybe_connect_autodoc)
     app.connect("env-purge-doc", purge_badges)
     app.connect("env-merge-info", merge_badges)
+    app.connect("doctree-resolved", _move_badges_to_top)
     app.connect("build-finished", write_badge_data_js)
 
     return {

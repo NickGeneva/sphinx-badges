@@ -3,7 +3,7 @@ BetaClass
 
 .. badges:: stability:beta stability:new area:core
 
-A new class still in the beta programme — the API may change.
+A new class still in the beta programme - the API may change.
 
 .. py:class:: BetaClass(config)
 

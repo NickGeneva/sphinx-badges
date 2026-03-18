@@ -1,8 +1,6 @@
 deprecated_helper
 =================
 
-.. badges:: stability:deprecated area:utils
-
 This helper is deprecated since v0.1.0.  Use :func:`stable_function`
 instead.
 

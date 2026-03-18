@@ -1,8 +1,6 @@
 stable_function
 ===============
 
-.. badges:: stability:stable area:math
-
 A well-tested, production-ready function.
 
 .. py:function:: stable_function(x, y)

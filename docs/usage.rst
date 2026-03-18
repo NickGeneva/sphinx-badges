@@ -90,6 +90,21 @@ Options:
 
    ``or`` — show entries whose page carries **any** of the active badges.
 
+Badge position in API blocks
+----------------------------
+
+By default ``.. badges::`` renders where it appears in the RST source.
+Set ``badges_position`` in ``conf.py`` to ``"top"`` to automatically move
+all badges to the top of their enclosing API block (``py:class``,
+``py:function``, etc.), regardless of where the directive is written:
+
+.. code-block:: python
+
+   badges_position = "top"    # move above the description (recommended)
+   badges_position = "bottom" # leave in source order (default)
+
+This applies to both hand-written RST and autodoc-generated pages.
+
 Badge style
 -----------
 
