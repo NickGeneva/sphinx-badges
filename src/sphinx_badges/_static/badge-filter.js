@@ -32,15 +32,15 @@
 
     abs = abs.replace(/\/index\.html$/, "").replace(/\.html$/, "");
 
-    var docname = ((window.DOCUMENTATION_OPTIONS || {}).docname || "").replace(/\/index$/, "");
-    if (docname) {
-      var currentAbs = window.location.pathname
-        .replace(/\/index\.html$/, "")
-        .replace(/\.html$/, "");
-      var depth = docname.split("/").length;
-      var root = currentAbs.split("/").slice(0, -depth).join("/");
-      if (abs.startsWith(root + "/")) abs = abs.slice(root.length + 1);
-    }
+    // Determine the site root by resolving URL_ROOT (e.g. "../" for pages in
+    // subdirectories) against the current page's directory.  This correctly
+    // strips a subpath prefix such as "/sphinx-badges/" added by GitHub Pages.
+    var pageDir = window.location.href.slice(0, window.location.href.lastIndexOf("/") + 1);
+    var urlRoot = (window.DOCUMENTATION_OPTIONS || {}).URL_ROOT || "";
+    var siteRoot;
+    try { siteRoot = new URL(urlRoot, pageDir).pathname; }
+    catch (_) { siteRoot = "/"; }
+    if (abs.startsWith(siteRoot)) abs = abs.slice(siteRoot.length);
 
     var resolved = [];
     abs.split("/").forEach(function (p) {
