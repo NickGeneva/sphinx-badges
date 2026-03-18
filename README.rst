@@ -17,20 +17,7 @@ by badge group with a single click.
    :target: https://github.com/astral-sh/ruff
    :alt: Ruff Format
 
-Features
---------
-
-- ``.. badges:: stable experimental`` — block directive that renders one or
-  more coloured badge chips inline with the surrounding content.
-- ``:badge:`stable``` — inline role for badges inside paragraphs.
-- ``.. badge-filter:: stable beta deprecated`` — wraps a ``.. toctree::``
-  with interactive filter buttons; clicking a badge shows only toctree
-  entries whose target page carries that badge.
-- Global badge colour/label configuration via ``badges_definitions`` in
-  ``conf.py``.
-- Five built-in badges: **stable**, **beta**, **experimental**,
-  **deprecated**, **new** (all overridable).
-- Graceful degradation for LaTeX, text, and man-page builders.
+`Documentation <https://NickGeneva.github.io/sphinx-badges/>`_
 
 Installation
 ------------
@@ -50,37 +37,52 @@ Quick start
 
       extensions = ["sphinx_badges"]
 
-2. Optionally customise badge colours:
+2. Define grouped badges in ``conf.py``:
 
    .. code-block:: python
 
-      badges_definitions = {
-          "stable":       {"label": "Stable",       "color": "#198754", "text_color": "#fff"},
-          "experimental": {"label": "Experimental", "color": "#ffc107", "text_color": "#000"},
+      badges_group_labels = {
+          "stability": "Stability",
+          "area":      "Area",
       }
 
-3. Use in your ``.rst`` files:
+      badges_definitions = {
+          "stability:stable":       {"label": "Stable",       "color": "#198754", "text_color": "#fff"},
+          "stability:experimental": {"label": "Experimental", "color": "#ffc107", "text_color": "#000"},
+          "area:core":              {"label": "Core",         "color": "#6f42c1", "text_color": "#fff"},
+          "area:utils":             {"label": "Utils",        "color": "#fd7e14", "text_color": "#fff"},
+      }
+
+   Badge IDs use a ``group:name`` format. ``badges_group_labels`` maps group
+   keys to the display labels shown above each row of filter buttons.
+   Ungrouped IDs (no colon) are also supported for simpler setups.
+
+3. Attach badges to a page:
 
    .. code-block:: rst
 
       my_function
       ===========
 
-      .. badges:: stable new
+      .. badges:: stability:stable area:core
 
-      Description here.  Also inline: :badge:`stable`.
+      Description here.  Also inline: :badge:`stability:stable`.
 
-4. Filter a toctree:
+4. Filter a toctree by badge group:
 
    .. code-block:: rst
 
-      .. badge-filter:: stable beta experimental
+      .. badge-filter:: stability:stable stability:experimental area:core area:utils
          :filter-mode: or
 
          .. toctree::
 
             api/module_a
             api/module_b
+
+   Each group renders as its own labelled row of filter buttons.
+   ``filter-mode`` can be ``or`` (any active badge matches) or ``and``
+   (all active badges must match; default).
 
 Licence
 -------
