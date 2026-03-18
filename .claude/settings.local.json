@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.sphinx-doc.org)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:packaging.python.org)",
+      "WebFetch(domain:docutils.sourceforge.io)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  }
+}
