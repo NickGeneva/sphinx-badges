@@ -71,8 +71,8 @@ def process_docstring(
     """``autodoc-process-docstring`` handler.
 
     Parses the numpy-style ``Badges`` section from *lines*, removes it, and
-    injects a ``.. badges::`` directive at the top of the docstring so Sphinx
-    renders the badges inline.
+    injects a ``.. badges::`` directive immediately after the first paragraph
+    so that autosummary can still extract the opening summary line.
     """
     badge_ids, cleaned = _extract_badges_section(lines)
     if not badge_ids:
@@ -81,9 +81,13 @@ def process_docstring(
     # Rewrite lines in-place.
     lines[:] = cleaned
 
-    # Insert  ``.. badges:: id1 id2``  followed by a blank line at the top.
-    lines.insert(0, "")
-    lines.insert(0, f".. badges:: {' '.join(badge_ids)}")
+    # Insert ``.. badges:: id1 id2`` after the first paragraph so that
+    # autosummary can still extract the opening summary line from the
+    # docstring.  The ``badges_position = "top"`` doctree transform handles
+    # visual reordering when needed.
+    first_blank = next((i for i, ln in enumerate(lines) if not ln.strip()), len(lines))
+    lines.insert(first_blank, "")
+    lines.insert(first_blank, f".. badges:: {' '.join(badge_ids)}")
 
     # Register badge metadata on the environment so the filter can find it.
     env = app.env
