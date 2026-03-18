@@ -22,14 +22,25 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+docs = [
+    "furo",
+]
+
+[dependency-groups]
 dev = [
     "pytest",
     "pytest-cov",
     "furo",
+    "pre-commit",
+    "ruff",
 ]
-docs = [
-    "furo",
-]
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/sphinx_badges"]

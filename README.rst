@@ -9,6 +9,14 @@ by badge group with a single click.
 .. image:: https://img.shields.io/pypi/v/sphinx-badges
    :alt: PyPI version
 
+.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+   :target: https://github.com/astral-sh/ruff
+   :alt: Ruff
+
+.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/format.json
+   :target: https://github.com/astral-sh/ruff
+   :alt: Ruff Format
+
 Features
 --------
 
@@ -27,9 +35,11 @@ Features
 Installation
 ------------
 
+Directly from GitHub (latest development version):
+
 .. code-block:: bash
 
-   pip install sphinx-badges
+   pip install git+https://github.com/NickGeneva/sphinx-badges.git
 
 Quick start
 -----------
