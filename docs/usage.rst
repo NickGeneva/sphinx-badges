@@ -8,6 +8,12 @@ Installation
 
    pip install sphinx-badges
 
+Or with uv:
+
+.. code-block:: bash
+
+   uv add sphinx-badges
+
 Add the extension to ``conf.py``::
 
    extensions = ["sphinx_badges"]

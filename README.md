@@ -2,8 +2,9 @@
 
 Bootstrap-style status badges for [Sphinx](https://www.sphinx-doc.org/) documentation.
 
-Attach coloured badges to any API element, and let readers filter a toctree
-by badge group with a single click.
+Attach coloured badges to any API element, filter a toctree or autosummary table
+by badge group with a single click, and add per-group icons and tooltips to make
+status immediately scannable.
 
 [![PyPI version](https://img.shields.io/pypi/v/sphinx-badges)](https://pypi.org/project/sphinx-badges/)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
@@ -13,10 +14,14 @@ by badge group with a single click.
 
 ## Installation
 
-Directly from GitHub (latest development version):
+```bash
+pip install sphinx-badges
+```
+
+Or with uv:
 
 ```bash
-pip install git+https://github.com/NickGeneva/sphinx-badges.git
+uv add sphinx-badges
 ```
 
 ## Quick start
@@ -31,8 +36,15 @@ pip install git+https://github.com/NickGeneva/sphinx-badges.git
 
    ```python
    badges_group_labels = {
-       "stability": "Stability",
-       "area":      "Area",
+       "stability": {
+           "label": "Stability",
+           "tooltip": "API stability level",
+           "icon": "⚡",        # prepended to every badge in this group
+       },
+       "area": {
+           "label": "Area",
+           "tooltip": "Functional area",
+       },
    }
 
    badges_definitions = {
@@ -43,9 +55,13 @@ pip install git+https://github.com/NickGeneva/sphinx-badges.git
    }
    ```
 
-   Badge IDs use a `group:name` format. `badges_group_labels` maps group keys to the
-   display labels shown above each row of filter buttons. Ungrouped IDs (no colon) are
-   also supported for simpler setups.
+   Badge IDs use a `group:name` format. `badges_group_labels` maps group keys to
+   display labels shown above each row of filter buttons. Each group can also carry
+   an `icon` (prepended to every badge in the group) and a `tooltip` (shown on
+   hover). Per-badge `icon` and `tooltip` can be set directly in
+   `badges_definitions` to override the group-level values.
+
+   Ungrouped IDs (no colon) are also supported for simpler setups.
 
 3. Attach badges to a page:
 
@@ -73,6 +89,18 @@ pip install git+https://github.com/NickGeneva/sphinx-badges.git
    Each group renders as its own labelled row of filter buttons.
    `filter-mode` can be `or` (any active badge matches) or `and`
    (all active badges must match; default).
+
+5. Add badges via numpy-style docstrings (autodoc):
+
+   ```python
+   def my_function(x, y):
+       """Return the sum.
+
+       Badges
+       ------
+       stability:stable area:core
+       """
+   ```
 
 ## Licence
 

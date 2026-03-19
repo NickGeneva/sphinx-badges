@@ -18,7 +18,7 @@ from .directives import BadgeFilterDirective, BadgesDirective
 from .nodes import badge, badge_filter, badge_list
 from .roles import BadgeRole
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 _DEFAULT_COLOR = "#6c757d"
 
