@@ -30,9 +30,24 @@ badges_style = "rounded"
 
 # Define (or override) badge colours and labels.
 # Group display labels — keys match the prefix used in badge IDs.
+# Each entry can be a plain string (label only) or a dict with optional
+# "icon" and "tooltip" keys.  The icon is prepended to every badge in
+# the group; the tooltip appears on hover.
 badges_group_labels = {
-    "stability": "Stability",
-    "area": "Area",
+    "stability": {
+        "label": "Stability",
+        "tooltip": "API stability level — how safe this item is to depend on",
+    },
+    "area": {
+        "label": "Area",
+        "icon": "📦",
+        "tooltip": "Functional area this item belongs to",
+    },
+    # platform group — icon-only badges (empty label shows just the icon)
+    "platform": {
+        "label": "Platform",
+        "tooltip": "Supported runtime platform",
+    },
 }
 
 # Badge definitions.  Use "group:name" keys for grouped badges.
@@ -49,6 +64,8 @@ badges_definitions = {
         "label": "Experimental",
         "color": "#ffc107",
         "text_color": "#000000",
+        "icon": "🧪",
+        "tooltip": "Potentially unstable APIs",
     },
     "stability:deprecated": {
         "label": "Deprecated",
@@ -60,6 +77,20 @@ badges_definitions = {
     "area:core": {"label": "Core", "color": "#6f42c1", "text_color": "#ffffff"},
     "area:math": {"label": "Math", "color": "#20c997", "text_color": "#000000"},
     "area:utils": {"label": "Utils", "color": "#fd7e14", "text_color": "#ffffff"},
+    # Platform group — label is empty so only the per-badge icon is shown
+    "platform:python": {
+        "label": "",
+        "color": "#3572A5",
+        "text_color": "#ffffff",
+        "icon": "🐍",
+        "tooltip": "Python",
+    },
+    "platform:cli": {
+        "label": "CLI",
+        "color": "#212529",
+        "text_color": "#ffffff",
+        "icon": "⌨️",
+    },
 }
 
 badges_default_color = "#6c757d"

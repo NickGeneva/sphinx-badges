@@ -3,7 +3,7 @@
  *
  * Data sources (written at build time):
  *   window.SPHINX_BADGES_DATA          — { docname: [badge_id, ...] }
- *   window.SPHINX_BADGES_DEFINITIONS   — { badge_id: { label, color, text_color, group, name } }
+ *   window.SPHINX_BADGES_DEFINITIONS   — { badge_id: { label, color, text_color, group, name, icon, tooltip } }
  *   window.SPHINX_BADGES_STYLE         — "rounded" | "square" | "pill"
  *   window.SPHINX_BADGES_GROUP_LABELS  — { group_key: "Display Label" }
  *
@@ -58,12 +58,17 @@
     if (styleVal === "square") cls += " sphinx-badge-square";
     else if (styleVal === "pill") cls += " sphinx-badge-pill";
 
+    var icon = defn.icon || "";
+    var baseLabel = defn.label || badgeId;
+    var label = icon && baseLabel ? icon + " " + baseLabel : (icon || baseLabel);
+
     var span = document.createElement("span");
     span.className = cls;
     span.dataset.badgeId = badgeId;
     span.style.backgroundColor = defn.color || "#6c757d";
     span.style.color = defn.text_color || "#fff";
-    span.textContent = defn.label || badgeId;
+    span.textContent = label;
+    if (defn.tooltip) span.title = defn.tooltip;
     return span;
   }
 

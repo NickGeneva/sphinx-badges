@@ -58,6 +58,26 @@ def _parse_badge_id(badge_id: str) -> tuple[str, str]:
     return "", badge_id
 
 
+def _get_group_config(config: Any, group_key: str) -> dict[str, str]:
+    """Return normalised group config for *group_key*.
+
+    ``badges_group_labels`` accepts either a plain string (display label only)
+    or a dict with optional keys ``label``, ``icon``, and ``tooltip``.
+    """
+    raw: dict = getattr(config, "badges_group_labels", {})
+    entry = raw.get(group_key)
+    fallback_label = group_key.replace("_", " ").title()
+    if entry is None:
+        return {"label": fallback_label, "icon": "", "tooltip": ""}
+    if isinstance(entry, str):
+        return {"label": entry, "icon": "", "tooltip": ""}
+    return {
+        "label": entry.get("label", fallback_label),
+        "icon": entry.get("icon", ""),
+        "tooltip": entry.get("tooltip", ""),
+    }
+
+
 def _resolve_badge(config: Any, badge_id: str) -> dict[str, str]:
     """Return the effective definition for *badge_id*.
 
@@ -67,6 +87,9 @@ def _resolve_badge(config: Any, badge_id: str) -> dict[str, str]:
     2. ``badges_definitions['name']``         (bare-name user override)
     3. built-in defaults keyed by ``'name'``
     4. auto-generated fallback (title-case of name, default colour)
+
+    Icon and tooltip fall back to the group-level config from
+    ``badges_group_labels`` when not set on the individual badge.
     """
     user_defs: dict = getattr(config, "badges_definitions", {})
     group, name = _parse_badge_id(badge_id)
@@ -78,6 +101,9 @@ def _resolve_badge(config: Any, badge_id: str) -> dict[str, str]:
     defn.update(user_defs.get(name, {}))  # user by name
     defn.update(user_defs.get(badge_id, {}))  # user exact
 
+    group_cfg = (
+        _get_group_config(config, group) if group else {"icon": "", "tooltip": ""}
+    )
     fallback_label = name.replace("_", " ").title() if name else badge_id
     return {
         "label": defn.get("label", fallback_label),
@@ -85,6 +111,8 @@ def _resolve_badge(config: Any, badge_id: str) -> dict[str, str]:
             "color", getattr(config, "badges_default_color", _DEFAULT_COLOR)
         ),
         "text_color": defn.get("text_color", "#ffffff"),
+        "icon": defn.get("icon", group_cfg["icon"]),
+        "tooltip": defn.get("tooltip", group_cfg["tooltip"]),
     }
 
 
@@ -104,11 +132,18 @@ def visit_badge_html(self, node: badge) -> None:
     cfg = self.builder.app.config
     badge_id = node["badge_id"]
     defn = _resolve_badge(cfg, badge_id)
-    label = node.get("label_override") or defn["label"]
+    base_label = node.get("label_override") or defn["label"]
+    icon = defn.get("icon", "")
+    label = (
+        f"{icon} {base_label}".strip() if icon and base_label else (icon or base_label)
+    )
     style = f"background-color:{defn['color']};color:{defn['text_color']};"
     cls = _badge_classes(cfg)
+    tooltip = defn.get("tooltip", "")
+    title_attr = f' title="{tooltip}"' if tooltip else ""
     self.body.append(
-        f'<span class="{cls}" data-badge-id="{badge_id}" style="{style}">{label}</span>'
+        f'<span class="{cls}" data-badge-id="{badge_id}"'
+        f' style="{style}"{title_attr}>{label}</span>'
     )
     raise docutils_nodes.SkipNode
 
@@ -140,15 +175,13 @@ def visit_badge_filter_html(self, node: badge_filter) -> None:
 
     if is_grouped:
         # Build an ordered dict: group_key → [(full_id, name), ...]
-        group_labels_cfg: dict = getattr(cfg, "badges_group_labels", {})
         groups: OrderedDict[str, list[tuple[str, str]]] = OrderedDict()
         for full_id, group, name in parsed:
             groups.setdefault(group, []).append((full_id, name))
 
         for group_key, members in groups.items():
-            display_label = group_labels_cfg.get(
-                group_key, group_key.replace("_", " ").title()
-            )
+            group_cfg = _get_group_config(cfg, group_key)
+            display_label = group_cfg["label"]
             self.body.append('<div class="sphinx-badge-filter-row">')
             self.body.append(
                 f'<span class="sphinx-badge-filter-group-label">{display_label}</span>'
@@ -156,10 +189,19 @@ def visit_badge_filter_html(self, node: badge_filter) -> None:
             for full_id, _name in members:
                 defn = _resolve_badge(cfg, full_id)
                 style = f"background-color:{defn['color']};color:{defn['text_color']};"
+                icon = defn.get("icon", "")
+                base_label = defn["label"]
+                btn_label = (
+                    f"{icon} {base_label}".strip()
+                    if icon and base_label
+                    else (icon or base_label)
+                )
+                tooltip = defn.get("tooltip", "")
+                title_attr = f' title="{tooltip}"' if tooltip else ""
                 self.body.append(
                     f'<button class="sphinx-badge-filter-btn {badge_cls}" '
                     f'data-badge-id="{full_id}" style="{style}" '
-                    f'aria-pressed="false">{defn["label"]}</button>'
+                    f'aria-pressed="false"{title_attr}>{btn_label}</button>'
                 )
             self.body.append("</div>")  # .sphinx-badge-filter-row
 
@@ -182,10 +224,19 @@ def visit_badge_filter_html(self, node: badge_filter) -> None:
         for full_id, _group, _name in parsed:
             defn = _resolve_badge(cfg, full_id)
             style = f"background-color:{defn['color']};color:{defn['text_color']};"
+            icon = defn.get("icon", "")
+            base_label = defn["label"]
+            btn_label = (
+                f"{icon} {base_label}".strip()
+                if icon and base_label
+                else (icon or base_label)
+            )
+            tooltip = defn.get("tooltip", "")
+            title_attr = f' title="{tooltip}"' if tooltip else ""
             self.body.append(
                 f'<button class="sphinx-badge-filter-btn {badge_cls}" '
                 f'data-badge-id="{full_id}" style="{style}" '
-                f'aria-pressed="false">{defn["label"]}</button>'
+                f'aria-pressed="false"{title_attr}>{btn_label}</button>'
             )
 
     self.body.append("</div>")  # .sphinx-badge-filter-controls
@@ -259,6 +310,8 @@ def write_badge_data_js(app: Sphinx, exception: Exception | None) -> None:
             "text_color": defn["text_color"],
             "group": group,
             "name": name,
+            "icon": defn.get("icon", ""),
+            "tooltip": defn.get("tooltip", ""),
         }
 
     badge_style: str = getattr(app.config, "badges_style", "rounded")

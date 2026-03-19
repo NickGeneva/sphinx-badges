@@ -161,6 +161,86 @@ above the generated table:
 Clicking a filter button hides rows whose target page does not carry the
 selected badge.  Works alongside toctree filtering on the same page.
 
+Group icons and tooltips
+------------------------
+
+Each group in ``badges_group_labels`` can carry an ``icon`` and a
+``tooltip``.  The icon is prepended to every badge that belongs to the
+group; the tooltip text appears when the user hovers over the badge.
+
+.. code-block:: python
+
+   badges_group_labels = {
+       "stability": {
+           "label": "Stability",
+           "tooltip": "API stability level",
+       },
+       "area": {
+           "label": "Area",
+           "icon": "📦",
+           "tooltip": "Functional area",
+       },
+   }
+
+A plain string value (``"stability": "Stability"``) still works and is
+equivalent to omitting ``icon`` and ``tooltip``.
+
+With the config above, the area badges render like this (hover for the
+tooltip):
+
+.. badges:: area:core area:math area:utils
+
+Icon-only badges
+~~~~~~~~~~~~~~~~
+
+Set ``"label": ""`` on an individual badge definition to suppress its
+text — only the icon is displayed.  This is useful for compact platform
+or tag indicators:
+
+.. code-block:: python
+
+   badges_group_labels = {
+       "platform": {
+           "label": "Platform",
+           "tooltip": "Supported runtime platform",
+       },
+   }
+
+   badges_definitions = {
+       "platform:python": {
+           "label": "",        # no text — only the badge-level icon shows
+           "color": "#3572A5",
+           "text_color": "#ffffff",
+           "icon": "🐍",
+           "tooltip": "Python",
+       },
+       "platform:cli": {
+           "label": "CLI",     # icon + text
+           "color": "#212529",
+           "text_color": "#ffffff",
+           "icon": "⌨️",
+       },
+   }
+
+With those definitions:
+
+.. badges:: platform:python platform:cli
+
+Priority order for a badge's prefix: per-badge ``icon`` in
+``badges_definitions`` → group-level ``icon`` → no prefix.  Per-badge
+``tooltip`` in ``badges_definitions`` overrides the group ``tooltip``.
+
+Inline role with icons
+~~~~~~~~~~~~~~~~~~~~~~
+
+The ``:badge:`` role picks up icons and tooltips automatically:
+
+.. code-block:: rst
+
+   This function is :badge:`stability:stable` and targets :badge:`platform:python`.
+
+Which renders as: :badge:`stability:stable` and :badge:`platform:python` — hover each to see its tooltip.
+
 How it works
 ------------
 
