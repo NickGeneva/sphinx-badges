@@ -23,6 +23,10 @@ extensions = [
 
 autosummary_generate = True  # auto-generate stub pages under generated/
 
+html_css_files = [
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css",
+]
+
 # ── sphinx-badges configuration ──────────────────────────────────────────────
 # Badge style: "rounded" (default, Bootstrap-style), "square" (Material Design),
 # or "pill" (fully rounded).
@@ -90,6 +94,19 @@ badges_definitions = {
         "color": "#212529",
         "text_color": "#ffffff",
         "icon": "⌨️",
+    },
+    "platform:mobile": {
+        "label": "Mobile",
+        "color": "#3DDC84",
+        "text_color": "#ffffff",
+        "icon": '<i class="fa-brands fa-android"></i>',
+    },
+    "platform:web": {
+        "label": "",  # icon-only
+        "color": "#0d6efd",
+        "text_color": "#ffffff",
+        "icon": '<i class="fa-brands fa-chrome"></i>',
+        "tooltip": "Web",
     },
 }
 

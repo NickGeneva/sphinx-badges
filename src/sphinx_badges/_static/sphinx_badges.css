@@ -17,6 +17,11 @@
     text-decoration: none;
 }
 
+/* Gap between an icon and its following text label */
+.sphinx-badge-icon + .sphinx-badge-label {
+    margin-left: 0.3em;
+}
+
 /* ── Style variants ───────────────────────────────────────────────────────── */
 
 /* Square / Material Design — no rounded corners */

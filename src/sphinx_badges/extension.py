@@ -20,6 +20,17 @@ from .roles import BadgeRole
 
 __version__ = "0.1.1"
 
+
+def _compose_badge_content(icon: str, base_label: str) -> str:
+    """Return inner HTML for a badge, wrapping text in a span when both present."""
+    if icon and base_label:
+        return (
+            f'<span class="sphinx-badge-icon">{icon}</span>'
+            f'<span class="sphinx-badge-label">{base_label}</span>'
+        )
+    return icon or base_label
+
+
 _DEFAULT_COLOR = "#6c757d"
 
 # Sensible default badge definitions — users override via conf.py.
@@ -134,9 +145,7 @@ def visit_badge_html(self, node: badge) -> None:
     defn = _resolve_badge(cfg, badge_id)
     base_label = node.get("label_override") or defn["label"]
     icon = defn.get("icon", "")
-    label = (
-        f"{icon} {base_label}".strip() if icon and base_label else (icon or base_label)
-    )
+    label = _compose_badge_content(icon, base_label)
     style = f"background-color:{defn['color']};color:{defn['text_color']};"
     cls = _badge_classes(cfg)
     tooltip = defn.get("tooltip", "")
@@ -191,11 +200,7 @@ def visit_badge_filter_html(self, node: badge_filter) -> None:
                 style = f"background-color:{defn['color']};color:{defn['text_color']};"
                 icon = defn.get("icon", "")
                 base_label = defn["label"]
-                btn_label = (
-                    f"{icon} {base_label}".strip()
-                    if icon and base_label
-                    else (icon or base_label)
-                )
+                btn_label = _compose_badge_content(icon, base_label)
                 tooltip = defn.get("tooltip", "")
                 title_attr = f' title="{tooltip}"' if tooltip else ""
                 self.body.append(
@@ -226,11 +231,7 @@ def visit_badge_filter_html(self, node: badge_filter) -> None:
             style = f"background-color:{defn['color']};color:{defn['text_color']};"
             icon = defn.get("icon", "")
             base_label = defn["label"]
-            btn_label = (
-                f"{icon} {base_label}".strip()
-                if icon and base_label
-                else (icon or base_label)
-            )
+            btn_label = _compose_badge_content(icon, base_label)
             tooltip = defn.get("tooltip", "")
             title_attr = f' title="{tooltip}"' if tooltip else ""
             self.body.append(

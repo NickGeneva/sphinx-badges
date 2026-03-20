@@ -88,14 +88,17 @@
 
     var icon = defn.icon || "";
     var baseLabel = defn.label || badgeId;
-    var label = icon && baseLabel ? icon + " " + baseLabel : (icon || baseLabel);
+    var label = icon && baseLabel
+      ? '<span class="sphinx-badge-icon">' + icon + "</span>" +
+        '<span class="sphinx-badge-label">' + baseLabel + "</span>"
+      : (icon || baseLabel);
 
     var span = document.createElement("span");
     span.className = cls;
     span.dataset.badgeId = badgeId;
     span.style.backgroundColor = defn.color || "#6c757d";
     span.style.color = defn.text_color || "#fff";
-    span.textContent = label;
+    span.innerHTML = label;
     if (defn.tooltip) span.title = defn.tooltip;
     return span;
   }

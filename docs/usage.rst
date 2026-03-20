@@ -235,6 +235,61 @@ Priority order for a badge's prefix: per-badge ``icon`` in
 ``badges_definitions`` → group-level ``icon`` → no prefix.  Per-badge
 ``tooltip`` in ``badges_definitions`` overrides the group ``tooltip``.
 
+HTML element icons
+~~~~~~~~~~~~~~~~~~
+
+The ``icon`` field accepts any raw HTML string, including icon-font elements
+such as `Font Awesome <https://fontawesome.com>`_ or `Bootstrap <https://icons.getbootstrap.com/>`_.
+The value is injected verbatim inside the badge ``<span>``, so any self-contained HTML
+fragment works:
+
+.. code-block:: python
+
+   badges_definitions = {
+       "platform:mobile": {
+           "label": "Mobile",
+           "color": "#3DDC84",
+           "text_color": "#ffffff",
+           "icon": '<i class="fa-solid fa-android"></i>',
+       },
+       "platform:web": {
+           "label": "",          # icon-only
+           "color": "#0d6efd",
+           "text_color": "#ffffff",
+           "icon": '<i class="fa-brands fa-chrome"></i>',
+           "tooltip": "Web",
+       },
+   }
+
+With those definitions:
+
+.. badges:: platform:mobile platform:web
+
+To make third-party icons (e.g. FontAwesome) visible you must load its stylesheet.
+Add the CDN link to ``conf.py``:
+
+.. code-block:: python
+
+   # conf.py
+   html_css_files = [
+       "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css",
+   ]
+
+Or, if you host the assets locally, copy them into ``docs/_static/`` and
+reference the local path instead:
+
+.. code-block:: python
+
+   html_css_files = [
+       "fontawesome/css/all.min.css",
+   ]
+
+.. note::
+
+   HTML element icons are only needed when you want scalable vector icons from an icon
+   font or inline SVG. Emoji strings (``"📦"``) and plain text work as demonstrated
+   above.
+
 Inline role with icons
 ~~~~~~~~~~~~~~~~~~~~~~
 
