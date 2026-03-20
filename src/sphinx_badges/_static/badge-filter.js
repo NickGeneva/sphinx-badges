@@ -21,6 +21,42 @@
 (function () {
   "use strict";
 
+  /* ── Site-root detection ─────────────────────────────────────────────────── */
+
+  // Compute once: the pathname prefix that corresponds to the Sphinx site root.
+  // badge-data.js is always deployed at <site-root>/_static/badge-data.js, so
+  // we can locate its <script> tag to derive the root reliably without depending
+  // on URL_ROOT (removed in Sphinx 7+) or pagename (theme-specific).
+  var _siteRoot = (function () {
+    var pageDir = window.location.href.slice(0, window.location.href.lastIndexOf("/") + 1);
+
+    // 1. Try URL_ROOT from documentation_options (Sphinx < 7 / some themes).
+    var urlRoot = (window.DOCUMENTATION_OPTIONS || {}).URL_ROOT;
+    if (urlRoot != null) {
+      try { return new URL(urlRoot, pageDir).pathname; } catch (_) {}
+    }
+
+    // 2. Find the badge-data.js <script> tag — it lives at _static/badge-data.js
+    //    relative to the site root, so we can strip that suffix from its absolute URL.
+    var scripts = document.querySelectorAll("script[src]");
+    for (var i = 0; i < scripts.length; i++) {
+      var src = scripts[i].getAttribute("src") || "";
+      if (src.indexOf("badge-data.js") === -1) continue;
+      try {
+        var abs = new URL(src, pageDir).pathname;
+        var marker = "/_static/";
+        var idx = abs.indexOf(marker);
+        if (idx >= 0) return abs.slice(0, idx + 1);
+      } catch (_) {}
+    }
+
+    // 3. Last resort: derive depth from pagename (pydata-sphinx-theme sets this).
+    var pagename = (window.DOCUMENTATION_OPTIONS || {}).pagename || "";
+    var depth = pagename ? pagename.split("/").length - 1 : 0;
+    urlRoot = depth > 0 ? new Array(depth + 1).join("../") : "./";
+    try { return new URL(urlRoot, pageDir).pathname; } catch (_) { return "/"; }
+  }());
+
   /* ── URL → docname ──────────────────────────────────────────────────────── */
 
   function hrefToDocname(href) {
@@ -32,15 +68,7 @@
 
     abs = abs.replace(/\/index\.html$/, "").replace(/\.html$/, "");
 
-    // Determine the site root by resolving URL_ROOT (e.g. "../" for pages in
-    // subdirectories) against the current page's directory.  This correctly
-    // strips a subpath prefix such as "/sphinx-badges/" added by GitHub Pages.
-    var pageDir = window.location.href.slice(0, window.location.href.lastIndexOf("/") + 1);
-    var urlRoot = (window.DOCUMENTATION_OPTIONS || {}).URL_ROOT || "";
-    var siteRoot;
-    try { siteRoot = new URL(urlRoot, pageDir).pathname; }
-    catch (_) { siteRoot = "/"; }
-    if (abs.startsWith(siteRoot)) abs = abs.slice(siteRoot.length);
+    if (abs.startsWith(_siteRoot)) abs = abs.slice(_siteRoot.length);
 
     var resolved = [];
     abs.split("/").forEach(function (p) {
@@ -159,12 +187,16 @@
       // ── Annotate entries with badge chips ──────────────────────────────
       entries.forEach(function (entry) {
         var pageBadges = badgeData[entry.docname] || [];
+        if (!pageBadges.length) return;
+        var target = entry.anchor.closest("td") || entry.anchor.parentNode;
+        var wrapper = document.createElement("span");
+        wrapper.className = "sphinx-entry-badges";
         pageBadges.forEach(function (bid) {
           var defn = badgeDefs[bid];
           if (!defn) return;
-          var target = entry.anchor.closest("td") || entry.anchor.parentNode;
-          target.appendChild(makeBadgeChip(bid, defn));
+          wrapper.appendChild(makeBadgeChip(bid, defn));
         });
+        target.appendChild(wrapper);
       });
 
       // ── Wire filter buttons ────────────────────────────────────────────
@@ -176,6 +208,8 @@
         if (resetRow) {
           resetRow.style.display = activeFilters.size ? "" : "none";
         }
+
+        widget.classList.toggle("sphinx-badge-has-active", activeFilters.size > 0);
 
         widget.querySelectorAll(".sphinx-badge-filter-btn[data-badge-id]").forEach(function (btn) {
           var bid = btn.dataset.badgeId;

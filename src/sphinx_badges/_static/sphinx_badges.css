@@ -157,8 +157,8 @@
     color: #212529;
 }
 
-/* Badge buttons inactive — dim to show unselected state */
-.sphinx-badge-filter-btn[aria-pressed="false"]:not([data-badge-id="__all__"]) {
+/* Badge buttons inactive — dim only when another badge is selected */
+.sphinx-badge-has-active .sphinx-badge-filter-btn[aria-pressed="false"]:not([data-badge-id="__all__"]) {
     opacity: 0.45;
 }
 
@@ -179,14 +179,19 @@
 }
 
 /* ── Badges appended to toctree / autosummary entries by JS ──────────────── */
-.sphinx-entry-badge {
-    margin-left: 0.5em;
-    vertical-align: middle;
+
+/* Wrapper injected by JS — allows badges to wrap across lines */
+.sphinx-entry-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25em;
+    white-space: normal;
+    margin-top: 0.3em;
 }
 
-/* First badge immediately after a <p> needs no left margin */
-p + .sphinx-entry-badge {
-    margin-left: 0;
+.sphinx-entry-badge {
+    margin: 0;
+    vertical-align: middle;
 }
 
 /* Remove the <p> bottom margin in autosummary cells so badges sit flush */

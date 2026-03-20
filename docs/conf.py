@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 sys.path.insert(0, str(Path(__file__).parent / "_python"))
 
 # ── Project ──────────────────────────────────────────────────────────────────
-project = "sphinx-badges demo"
+project = "sphinx-badges"
 copyright = "2026, sphinx-badges contributors"
 author = "sphinx-badges contributors"
 release = "0.1.0"

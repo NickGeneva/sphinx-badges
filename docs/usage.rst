@@ -161,8 +161,8 @@ above the generated table:
       .. autosummary::
          :toctree: generated/
 
-         mylib.DataProcessor
-         mylib.add
+         datalib.DataProcessor
+         mathlib.add
 
 Clicking a filter button hides rows whose target page does not carry the
 selected badge.  Works alongside toctree filtering on the same page.

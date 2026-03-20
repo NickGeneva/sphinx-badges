@@ -50,3 +50,5 @@ docs/build/
 *.swo
 *~
 .DS_Store
+
+generated/

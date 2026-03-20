@@ -76,4 +76,4 @@ Examples
    :caption: Example Autodoc Reference
    
 
-   api_summary
+   modules/api_summary.rst

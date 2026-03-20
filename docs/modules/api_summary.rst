@@ -8,15 +8,25 @@ across rows narrow them further (AND).
 .. badge-filter:: stability:stable stability:beta stability:experimental stability:deprecated stability:new area:core area:math area:utils
    :filter-mode: or
 
-   .. currentmodule:: mylib
+   .. currentmodule:: mathlib
 
    .. autosummary::
-      :toctree: generated/
+      :toctree: generated/mathlib
       :nosignatures:
 
       add
       experimental_sort
       legacy_format
+
+.. badge-filter:: stability:stable stability:beta stability:experimental stability:deprecated stability:new area:core area:math area:utils
+   :filter-mode: or
+
+   .. currentmodule:: datalib
+
+   .. autosummary::
+      :toctree: generated/datalib
+      :nosignatures:
+
       DataProcessor
       DataProcessor.run
       DataProcessor.preview
