@@ -87,7 +87,7 @@
     else if (styleVal === "pill") cls += " sphinx-badge-pill";
 
     var icon = defn.icon || "";
-    var baseLabel = defn.label || badgeId;
+    var baseLabel = defn.label != null ? defn.label : badgeId;
     var label = icon && baseLabel
       ? '<span class="sphinx-badge-icon">' + icon + "</span>" +
         '<span class="sphinx-badge-label">' + baseLabel + "</span>"
@@ -169,6 +169,16 @@
       }
 
       entry.element.classList.toggle("sphinx-badge-hidden", !visible);
+    });
+
+    // Re-index visible rows so row-odd / row-even stay correct after filtering.
+    var visibleIndex = 0;
+    entries.forEach(function (entry) {
+      if (!entry.element.classList.contains("sphinx-badge-hidden")) {
+        visibleIndex++;
+        entry.element.classList.toggle("row-odd",  visibleIndex % 2 !== 0);
+        entry.element.classList.toggle("row-even", visibleIndex % 2 === 0);
+      }
     });
   }
 

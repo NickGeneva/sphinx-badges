@@ -117,4 +117,4 @@ badges_default_color = "#6c757d"
 badges_position = "top"
 
 # ── HTML output ──────────────────────────────────────────────────────────────
-html_theme = "alabaster"
+html_theme = "shibuya"

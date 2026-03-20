@@ -8,14 +8,14 @@ All public objects carry a numpy-style ``Badges`` section using the
 class DataProcessor:
     """Process data records.
 
-    Badges
-    ------
-    stability:stable area:core
-
     Parameters
     ----------
     config : dict
         Configuration mapping.
+
+    Badges
+    ------
+    stability:stable area:core platform:web
     """
 
     def __init__(self, config):

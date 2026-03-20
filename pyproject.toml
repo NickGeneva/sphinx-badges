@@ -23,7 +23,7 @@ dependencies = [
 
 [project.optional-dependencies]
 docs = [
-    "furo",
+    "shibuya",
 ]
 
 [dependency-groups]
