@@ -117,5 +117,5 @@ badges_default_color = "#6c757d"
 badges_position = "top"
 
 # ── HTML output ──────────────────────────────────────────────────────────────
-# html_theme = "shibuya"
-html_theme = "pydata_sphinx_theme"
+html_theme = "shibuya"
+# html_theme = "pydata_sphinx_theme"
