@@ -35,6 +35,8 @@ class BadgeRole(SphinxRole):
         # Register in environment metadata.
         if not hasattr(self.env, "badges_all_data"):
             self.env.badges_all_data = {}
-        self.env.badges_all_data.setdefault(self.env.docname, set()).add(badge_id)
+        lst = self.env.badges_all_data.setdefault(self.env.docname, [])
+        if badge_id not in lst:
+            lst.append(badge_id)
 
         return [node], []

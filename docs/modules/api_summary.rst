@@ -18,7 +18,7 @@ across rows narrow them further (AND).
       experimental_sort
       legacy_format
 
-.. badge-filter:: stability:stable stability:beta stability:experimental stability:deprecated stability:new area:core area:math area:utils
+.. badge-filter:: area:core area:math area:utils stability:stable stability:experimental stability:beta stability:deprecated stability:new 
    :filter-mode: or
 
    .. currentmodule:: datalib

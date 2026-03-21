@@ -123,7 +123,7 @@ class DataProcessor:
 
         Badges
         ------
-        stability:beta area:utils
+        area:utils stability:beta
         """
         if not data:
             return {}
@@ -167,7 +167,7 @@ class DataProcessor:
 
         Badges
         ------
-        stability:deprecated area:math
+        area:math stability:deprecated
         """
         values = [r[field] for r in data if field in r]
         if not values:

@@ -89,12 +89,28 @@ def process_docstring(
     lines.insert(first_blank, "")
     lines.insert(first_blank, f".. badges:: {' '.join(badge_ids)}")
 
-    # Register badge metadata on the environment so the filter can find it.
+    # Register badge metadata so the JS filter can find this page.
+    # This must be done here rather than relying solely on BadgesDirective.run()
+    # because the injected ``.. badges::`` directive is processed via
+    # nested_parse inside autodoc's content generation, where SphinxDirective's
+    # self.env property is not reliably accessible.
+    #
+    # Guard: only write when this object is the *primary* subject of the
+    # current page.  Autosummary stubs have docnames whose last path component
+    # equals the full Python name (e.g. "generated/datalib.DataProcessor" for
+    # the class).  When a stub's nested ``.. autosummary::`` table fires
+    # process_docstring for methods, env.docname still points to the class stub
+    # — and we must NOT accumulate those method badges on the class page.
+    # Hand-written pages (docname basename contains no ".") are always allowed.
     env = app.env
     if env is not None:
         if not hasattr(env, "badges_all_data"):
             env.badges_all_data = {}
-        # autodoc docnames follow the same docname convention as source files.
         docname = getattr(env, "docname", None)
         if docname:
-            env.badges_all_data.setdefault(docname, set()).update(badge_ids)
+            doc_last = docname.rsplit("/", 1)[-1]
+            if doc_last == full_name or "." not in doc_last:
+                lst = env.badges_all_data.setdefault(docname, [])
+                for bid in badge_ids:
+                    if bid not in lst:
+                        lst.append(bid)

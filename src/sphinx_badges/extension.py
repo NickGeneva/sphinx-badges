@@ -260,6 +260,15 @@ def _maybe_connect_autodoc(app: Sphinx) -> None:
         app.connect("autodoc-process-docstring", process_docstring, priority=100)
 
 
+def _sort_badge_lists(
+    app: Sphinx, doctree: docutils_nodes.document, docname: str
+) -> None:
+    """No-op: badge ordering follows docstring insertion order.
+
+    Kept as a hook for potential future use.
+    """
+
+
 def _move_badges_to_top(
     app: Sphinx, doctree: docutils_nodes.document, docname: str
 ) -> None:
@@ -298,7 +307,8 @@ def write_badge_data_js(app: Sphinx, exception: Exception | None) -> None:
     os.makedirs(static_dir, exist_ok=True)
 
     badge_index = getattr(app.env, "badges_all_data", {})
-    serialisable_index = {k: sorted(v) for k, v in badge_index.items()}
+    # Preserve docstring insertion order; dict.fromkeys deduplicates without sorting.
+    serialisable_index = {k: list(dict.fromkeys(v)) for k, v in badge_index.items()}
 
     # Collect all known badge IDs from defaults, user defs, and seen badge_index.
     user_defs: dict = getattr(app.config, "badges_definitions", {})
@@ -393,6 +403,7 @@ def setup(app: Sphinx) -> dict[str, Any]:
     app.connect("builder-inited", _maybe_connect_autodoc)
     app.connect("env-purge-doc", purge_badges)
     app.connect("env-merge-info", merge_badges)
+    app.connect("doctree-resolved", _sort_badge_lists)
     app.connect("doctree-resolved", _move_badges_to_top)
     app.connect("build-finished", write_badge_data_js)
 
@@ -400,5 +411,5 @@ def setup(app: Sphinx) -> dict[str, Any]:
         "version": __version__,
         "parallel_read_safe": True,
         "parallel_write_safe": True,
-        "env_version": 3,
+        "env_version": 4,
     }

@@ -2,7 +2,7 @@
 
 
 def init_badge_env(app):
-    """Initialise ``env.badges_all_data`` on the first build."""
+    """Initialise badge metadata stores on the environment."""
     if not hasattr(app.env, "badges_all_data"):
         app.env.badges_all_data = {}
 
@@ -15,9 +15,22 @@ def purge_badges(app, env, docname):
 
 def merge_badges(app, env, docnames, other):
     """Merge badge metadata from a parallel-read worker environment."""
-    if not hasattr(other, "badges_all_data"):
-        return
-    if not hasattr(env, "badges_all_data"):
-        env.badges_all_data = {}
-    for docname, badge_ids in other.badges_all_data.items():
-        env.badges_all_data.setdefault(docname, set()).update(badge_ids)
+    if hasattr(other, "badges_all_data"):
+        if not hasattr(env, "badges_all_data"):
+            env.badges_all_data = {}
+        for docname, badge_ids in other.badges_all_data.items():
+            lst = env.badges_all_data.setdefault(docname, [])
+            existing = set(lst)
+            for bid in badge_ids:
+                if bid not in existing:
+                    lst.append(bid)
+                    existing.add(bid)
+
+    if hasattr(other, "badges_filter_order"):
+        if not hasattr(env, "badges_filter_order"):
+            env.badges_filter_order = []
+        existing = set(env.badges_filter_order)
+        for bid in other.badges_filter_order:
+            if bid not in existing:
+                env.badges_filter_order.append(bid)
+                existing.add(bid)
