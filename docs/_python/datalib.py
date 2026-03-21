@@ -8,6 +8,10 @@ All public objects carry a numpy-style ``Badges`` section using the
 class DataProcessor:
     """Process data records.
 
+    Note
+    ----
+    Just a sample class
+
     Parameters
     ----------
     config : dict

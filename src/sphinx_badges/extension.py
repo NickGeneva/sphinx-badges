@@ -250,9 +250,14 @@ def depart_badge_filter_html(self, node: badge_filter) -> None:
 
 
 def _maybe_connect_autodoc(app: Sphinx) -> None:
-    """Connect autodoc integration after all extensions are loaded."""
+    """Connect autodoc integration after all extensions are loaded.
+
+    Priority 100 ensures the Badges section is stripped before napoleon
+    (priority 500) processes the docstring, preventing it from being
+    misread as a parameter entry.
+    """
     if "sphinx.ext.autodoc" in app.extensions:
-        app.connect("autodoc-process-docstring", process_docstring)
+        app.connect("autodoc-process-docstring", process_docstring, priority=100)
 
 
 def _move_badges_to_top(
