@@ -169,37 +169,52 @@
    * @param {string}  filterMode   — "and" | "or" (flat mode only)
    */
   function applyFilter(entries, activeFilters, badgeData, isGrouped, filterMode) {
+    // Non-table entries: toggle a CSS class.
     entries.forEach(function (entry) {
-      var visible = isEntryVisible(entry, activeFilters, badgeData, isGrouped, filterMode);
+      if (!entry.tbody) {
+        entry.element.classList.toggle(
+          "sphinx-badge-hidden",
+          !isEntryVisible(entry, activeFilters, badgeData, isGrouped, filterMode)
+        );
+      }
+    });
 
-      if (entry.tbody) {
-        // Table row: remove from DOM when hidden so :nth-child skips it.
-        if (!visible && entry.element.parentNode) {
-          entry.tbody.removeChild(entry.element);
-        } else if (visible && !entry.element.parentNode) {
-          // Re-insert in original order by appending — entries are collected
-          // in document order, so appending visible ones in sequence restores
-          // the correct order.
-          entry.tbody.appendChild(entry.element);
+    // Table rows: collect managed rows per tbody (in original document order),
+    // then remove ALL of them and re-insert only the visible ones.  This
+    // guarantees correct order on every filter/unfilter — appending alone
+    // breaks order when some rows were never removed.
+    var tbodyRefs = [];   // ordered list of unique tbody references
+    var tbodyEntries = []; // parallel array of entry-arrays
+    entries.forEach(function (entry) {
+      if (!entry.tbody) return;
+      var idx = tbodyRefs.indexOf(entry.tbody);
+      if (idx === -1) {
+        tbodyRefs.push(entry.tbody);
+        tbodyEntries.push([]);
+        idx = tbodyRefs.length - 1;
+      }
+      tbodyEntries[idx].push(entry);
+    });
+
+    tbodyRefs.forEach(function (tbody, idx) {
+      var group = tbodyEntries[idx];
+
+      // Remove every managed row that is currently in this tbody.
+      group.forEach(function (entry) {
+        if (entry.element.parentNode === tbody) {
+          tbody.removeChild(entry.element);
         }
-      } else {
-        entry.element.classList.toggle("sphinx-badge-hidden", !visible);
-      }
-    });
+      });
 
-    // Re-assign row-odd / row-even on table rows to match their new DOM position.
-    var rowsByTbody = {};
-    entries.forEach(function (entry) {
-      if (entry.tbody && entry.element.parentNode) {
-        var key = entry.tbody;
-        if (!rowsByTbody[key]) rowsByTbody[key] = { tbody: entry.tbody, rows: [] };
-        rowsByTbody[key].rows.push(entry.element);
-      }
-    });
-    Object.keys(rowsByTbody).forEach(function (key) {
-      rowsByTbody[key].rows.forEach(function (tr, i) {
-        tr.classList.toggle("row-odd",  i % 2 === 0);
-        tr.classList.toggle("row-even", i % 2 !== 0);
+      // Re-append visible rows in original order and update stripe classes.
+      var rowIndex = 0;
+      group.forEach(function (entry) {
+        if (isEntryVisible(entry, activeFilters, badgeData, isGrouped, filterMode)) {
+          tbody.appendChild(entry.element);
+          entry.element.classList.toggle("row-odd",  rowIndex % 2 === 0);
+          entry.element.classList.toggle("row-even", rowIndex % 2 !== 0);
+          rowIndex++;
+        }
       });
     });
   }
