@@ -112,14 +112,16 @@
       var a = li.querySelector("a[href]");
       if (!a) return;
       var docname = hrefToDocname(a.getAttribute("href"));
-      if (docname) { li.dataset.resolvedDocname = docname; entries.push({ element: li, docname: docname, anchor: a }); }
+      if (docname) { li.dataset.resolvedDocname = docname; entries.push({ element: li, docname: docname, anchor: a, tbody: null }); }
     });
 
     contentWrapper.querySelectorAll("table.autosummary tbody tr").forEach(function (tr) {
       var a = tr.querySelector("td:first-child a[href]");
       if (!a) return;
       var docname = hrefToDocname(a.getAttribute("href"));
-      if (docname) { tr.dataset.resolvedDocname = docname; entries.push({ element: tr, docname: docname, anchor: a }); }
+      // Store the tbody so rows can be removed/re-inserted rather than hidden,
+      // keeping :nth-child counts accurate.
+      if (docname) { tr.dataset.resolvedDocname = docname; entries.push({ element: tr, docname: docname, anchor: a, tbody: tr.parentNode }); }
     });
 
     return entries;
@@ -128,9 +130,39 @@
   /* ── Filter logic ───────────────────────────────────────────────────────── */
 
   /**
+   * Return whether an entry should be visible given the current filters.
+   */
+  function isEntryVisible(entry, activeFilters, badgeData, isGrouped, filterMode) {
+    if (!activeFilters.size) return true;
+
+    var pageBadges = badgeData[entry.docname] || [];
+
+    if (isGrouped) {
+      var byGroup = {};
+      activeFilters.forEach(function (bid) {
+        var colon = bid.indexOf(":");
+        var group = colon >= 0 ? bid.slice(0, colon) : "__ungrouped__";
+        if (!byGroup[group]) byGroup[group] = [];
+        byGroup[group].push(bid);
+      });
+      return Object.keys(byGroup).every(function (group) {
+        return byGroup[group].some(function (bid) { return pageBadges.indexOf(bid) !== -1; });
+      });
+    }
+
+    return filterMode === "or"
+      ? Array.from(activeFilters).some(function (f) { return pageBadges.indexOf(f) !== -1; })
+      : Array.from(activeFilters).every(function (f) { return pageBadges.indexOf(f) !== -1; });
+  }
+
+  /**
    * Apply the current active filters to the entry list.
    *
-   * @param {Array}  entries       — [{element, docname}]
+   * Table rows (<tr>) are removed from / re-inserted into the DOM so that
+   * CSS :nth-child only counts the rows that are actually present.
+   * List items (<li>) are hidden with a CSS class as before.
+   *
+   * @param {Array}  entries       — [{element, docname, tbody}]
    * @param {Set}    activeFilters — set of active badge IDs
    * @param {Object} badgeData     — SPHINX_BADGES_DATA
    * @param {boolean} isGrouped    — use group-aware logic
@@ -138,47 +170,37 @@
    */
   function applyFilter(entries, activeFilters, badgeData, isGrouped, filterMode) {
     entries.forEach(function (entry) {
-      if (!activeFilters.size) {
-        entry.element.classList.remove("sphinx-badge-hidden");
-        return;
-      }
+      var visible = isEntryVisible(entry, activeFilters, badgeData, isGrouped, filterMode);
 
-      var pageBadges = badgeData[entry.docname] || [];
-      var visible;
-
-      if (isGrouped) {
-        // Build { group: [badge_ids] } for the active selection.
-        var byGroup = {};
-        activeFilters.forEach(function (bid) {
-          var colon = bid.indexOf(":");
-          var group = colon >= 0 ? bid.slice(0, colon) : "__ungrouped__";
-          if (!byGroup[group]) byGroup[group] = [];
-          byGroup[group].push(bid);
-        });
-
-        // AND across groups, OR within each group.
-        visible = Object.keys(byGroup).every(function (group) {
-          return byGroup[group].some(function (bid) {
-            return pageBadges.indexOf(bid) !== -1;
-          });
-        });
+      if (entry.tbody) {
+        // Table row: remove from DOM when hidden so :nth-child skips it.
+        if (!visible && entry.element.parentNode) {
+          entry.tbody.removeChild(entry.element);
+        } else if (visible && !entry.element.parentNode) {
+          // Re-insert in original order by appending — entries are collected
+          // in document order, so appending visible ones in sequence restores
+          // the correct order.
+          entry.tbody.appendChild(entry.element);
+        }
       } else {
-        visible = filterMode === "or"
-          ? Array.from(activeFilters).some(function (f) { return pageBadges.indexOf(f) !== -1; })
-          : Array.from(activeFilters).every(function (f) { return pageBadges.indexOf(f) !== -1; });
+        entry.element.classList.toggle("sphinx-badge-hidden", !visible);
       }
-
-      entry.element.classList.toggle("sphinx-badge-hidden", !visible);
     });
 
-    // Re-index visible rows so row-odd / row-even stay correct after filtering.
-    var visibleIndex = 0;
+    // Re-assign row-odd / row-even on table rows to match their new DOM position.
+    var rowsByTbody = {};
     entries.forEach(function (entry) {
-      if (!entry.element.classList.contains("sphinx-badge-hidden")) {
-        visibleIndex++;
-        entry.element.classList.toggle("row-odd",  visibleIndex % 2 !== 0);
-        entry.element.classList.toggle("row-even", visibleIndex % 2 === 0);
+      if (entry.tbody && entry.element.parentNode) {
+        var key = entry.tbody;
+        if (!rowsByTbody[key]) rowsByTbody[key] = { tbody: entry.tbody, rows: [] };
+        rowsByTbody[key].rows.push(entry.element);
       }
+    });
+    Object.keys(rowsByTbody).forEach(function (key) {
+      rowsByTbody[key].rows.forEach(function (tr, i) {
+        tr.classList.toggle("row-odd",  i % 2 === 0);
+        tr.classList.toggle("row-even", i % 2 !== 0);
+      });
     });
   }
 

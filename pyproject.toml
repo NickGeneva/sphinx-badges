@@ -24,6 +24,7 @@ dependencies = [
 [project.optional-dependencies]
 docs = [
     "shibuya",
+    "pydata-sphinx-theme",
 ]
 
 [dependency-groups]

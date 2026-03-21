@@ -30,3 +30,7 @@ across rows narrow them further (AND).
       DataProcessor
       DataProcessor.run
       DataProcessor.preview
+      DataProcessor.validate
+      DataProcessor.merge
+      DataProcessor.to_dict
+      DataProcessor.filter_records
