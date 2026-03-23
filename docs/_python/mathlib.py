@@ -44,7 +44,7 @@ def experimental_sort(items, *, reverse=False):
 
     Badges
     ------
-    area:utils stability:experimental stability:new
+    area:utils stability:stable  stability:beta stability:experimental
     """
     items.sort(reverse=reverse)
     return items

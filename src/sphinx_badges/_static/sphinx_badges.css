@@ -177,9 +177,10 @@
     opacity: 1;
 }
 
-/* ── Items hidden by the filter (toctree li or autosummary tr) ────────────── */
+/* ── Items hidden by the filter (toctree li, autosummary tr, autodoc dl) ───── */
 .sphinx-badge-filter-content li.sphinx-badge-hidden,
-.sphinx-badge-filter-content tr.sphinx-badge-hidden {
+.sphinx-badge-filter-content tr.sphinx-badge-hidden,
+.sphinx-badge-filter-content dl.sphinx-badge-hidden {
     display: none;
 }
 

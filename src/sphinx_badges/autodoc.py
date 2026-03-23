@@ -85,9 +85,17 @@ def process_docstring(
     # autosummary can still extract the opening summary line from the
     # docstring.  The ``badges_position = "top"`` doctree transform handles
     # visual reordering when needed.
+    #
+    # RST requires a blank line on both sides of a block directive.  We
+    # insert AFTER the first blank (so the existing blank acts as the
+    # preceding separator) then add a trailing blank.  For one-liner
+    # docstrings with no blank line we append one first.
     first_blank = next((i for i, ln in enumerate(lines) if not ln.strip()), len(lines))
-    lines.insert(first_blank, "")
-    lines.insert(first_blank, f".. badges:: {' '.join(badge_ids)}")
+    if first_blank == len(lines):
+        lines.append("")
+        first_blank = len(lines) - 1
+    lines.insert(first_blank + 1, "")  # trailing blank after directive
+    lines.insert(first_blank + 1, f".. badges:: {' '.join(badge_ids)}")
 
     # Register badge metadata so the JS filter can find this page.
     # This must be done here rather than relying solely on BadgesDirective.run()

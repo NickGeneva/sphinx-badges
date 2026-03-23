@@ -1,5 +1,6 @@
 /**
- * sphinx-badges — interactive filter for toctrees and autosummary tables.
+ * sphinx-badges — interactive filter for toctrees, autosummary tables,
+ * and inline autodoc member blocks.
  *
  * Data sources (written at build time):
  *   window.SPHINX_BADGES_DATA          — { docname: [badge_id, ...] }
@@ -16,6 +17,16 @@
  *   OR within a group, AND across groups.
  *   Example: selected = { stability: [stable, beta], region: [io] }
  *   → show pages that have (stable OR beta) AND io.
+ *
+ * Entry types
+ * ───────────
+ * toctree  — <li> elements inside .toctree-wrapper; badge IDs from SPHINX_BADGES_DATA.
+ * summary  — <tr> rows in table.autosummary; badge IDs from SPHINX_BADGES_DATA.
+ * autodoc  — <dl> member blocks (method, function, attribute, …) inside the filter
+ *            content; badge IDs read directly from the rendered badge spans in the DOM.
+ *            Badges are already visible inline, so no chip annotation is added.
+ *            dl.py.class elements are intentionally excluded so class containers
+ *            stay visible even when individual member filters are applied.
  */
 
 (function () {
@@ -103,25 +114,67 @@
     return span;
   }
 
+  /* ── Autodoc: collect badge IDs directly from a dl block's own badges ───── */
+
+  // Returns badge IDs that belong to `dl` itself — i.e. whose closest `dl`
+  // ancestor in the DOM is `dl`.  This prevents a method's badges from
+  // appearing as part of the containing class block.
+  function getDirectBadgeIds(dl) {
+    var badgeIds = [];
+    dl.querySelectorAll(".sphinx-badge[data-badge-id]").forEach(function (span) {
+      if (span.closest("dl") === dl) {
+        var bid = span.dataset.badgeId;
+        if (bid && badgeIds.indexOf(bid) === -1) badgeIds.push(bid);
+      }
+    });
+    return badgeIds;
+  }
+
   /* ── Collect filterable entries ─────────────────────────────────────────── */
+
+  // Autodoc member dl types that are individually filterable.
+  // dl.py.class is intentionally omitted — class containers stay visible
+  // so their members remain accessible regardless of active filters.
+  var AUTODOC_MEMBER_SELECTOR = [
+    "dl.py.method", "dl.py.function", "dl.py.attribute",
+    "dl.py.property", "dl.py.exception", "dl.py.data"
+  ].join(", ");
 
   function collectEntries(contentWrapper) {
     var entries = [];
 
+    // ── toctree list items ──────────────────────────────────────────────
     contentWrapper.querySelectorAll(".toctree-wrapper li").forEach(function (li) {
       var a = li.querySelector("a[href]");
       if (!a) return;
       var docname = hrefToDocname(a.getAttribute("href"));
-      if (docname) { li.dataset.resolvedDocname = docname; entries.push({ element: li, docname: docname, anchor: a, tbody: null }); }
+      if (docname) {
+        li.dataset.resolvedDocname = docname;
+        entries.push({ element: li, docname: docname, anchor: a, tbody: null, badgeIds: null });
+      }
     });
 
+    // ── autosummary table rows ──────────────────────────────────────────
     contentWrapper.querySelectorAll("table.autosummary tbody tr").forEach(function (tr) {
       var a = tr.querySelector("td:first-child a[href]");
       if (!a) return;
       var docname = hrefToDocname(a.getAttribute("href"));
       // Store the tbody so rows can be removed/re-inserted rather than hidden,
       // keeping :nth-child counts accurate.
-      if (docname) { tr.dataset.resolvedDocname = docname; entries.push({ element: tr, docname: docname, anchor: a, tbody: tr.parentNode }); }
+      if (docname) {
+        tr.dataset.resolvedDocname = docname;
+        entries.push({ element: tr, docname: docname, anchor: a, tbody: tr.parentNode, badgeIds: null });
+      }
+    });
+
+    // ── autodoc member blocks ───────────────────────────────────────────
+    // Badge IDs are read directly from the rendered badge spans in the DOM.
+    // No chip annotation is needed — badges are already visible inline.
+    contentWrapper.querySelectorAll(AUTODOC_MEMBER_SELECTOR).forEach(function (dl) {
+      entries.push({
+        element: dl, docname: null, anchor: null, tbody: null,
+        badgeIds: getDirectBadgeIds(dl)
+      });
     });
 
     return entries;
@@ -131,11 +184,17 @@
 
   /**
    * Return whether an entry should be visible given the current filters.
+   *
+   * Autodoc entries (entry.badgeIds != null) use their inline badge list.
+   * Toctree / autosummary entries (entry.badgeIds == null) look up badges
+   * from the per-page SPHINX_BADGES_DATA map written at build time.
    */
   function isEntryVisible(entry, activeFilters, badgeData, isGrouped, filterMode) {
     if (!activeFilters.size) return true;
 
-    var pageBadges = badgeData[entry.docname] || [];
+    var pageBadges = entry.badgeIds != null
+      ? entry.badgeIds
+      : (badgeData[entry.docname] || []);
 
     if (isGrouped) {
       var byGroup = {};
@@ -160,16 +219,16 @@
    *
    * Table rows (<tr>) are removed from / re-inserted into the DOM so that
    * CSS :nth-child only counts the rows that are actually present.
-   * List items (<li>) are hidden with a CSS class as before.
+   * List items (<li>) and autodoc blocks (<dl>) are hidden with a CSS class.
    *
-   * @param {Array}  entries       — [{element, docname, tbody}]
+   * @param {Array}  entries       — [{element, docname, tbody, badgeIds}]
    * @param {Set}    activeFilters — set of active badge IDs
    * @param {Object} badgeData     — SPHINX_BADGES_DATA
    * @param {boolean} isGrouped    — use group-aware logic
    * @param {string}  filterMode   — "and" | "or" (flat mode only)
    */
   function applyFilter(entries, activeFilters, badgeData, isGrouped, filterMode) {
-    // Non-table entries: toggle a CSS class.
+    // Non-table entries (li, dl): toggle a CSS class.
     entries.forEach(function (entry) {
       if (!entry.tbody) {
         entry.element.classList.toggle(
@@ -234,7 +293,8 @@
       var entries = collectEntries(content);
       if (!entries.length) return;
 
-      // ── Annotate entries with badge chips ──────────────────────────────
+      // ── Annotate toctree / autosummary entries with badge chips ────────
+      // Autodoc entries already have badges rendered inline — skip them.
       // If the widget declares a canonical badge order via data-badge-order,
       // sort each entry's badges to match that order before rendering chips.
       var badgeOrder = widget.dataset.badgeOrder
@@ -242,6 +302,9 @@
         : null;
 
       entries.forEach(function (entry) {
+        // Skip autodoc entries (badgeIds != null) — badges are already inline.
+        if (entry.badgeIds != null) return;
+
         var pageBadges = badgeData[entry.docname] || [];
         if (!pageBadges.length) return;
 
