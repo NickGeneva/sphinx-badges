@@ -175,10 +175,13 @@ def visit_badge_filter_html(self, node: badge_filter) -> None:
     parsed = [(bid, *_parse_badge_id(bid)) for bid in badge_ids]
     is_grouped = bool(badge_ids) and all(group for _, group, _ in parsed)
 
+    badge_order: list[str] | None = node.get("badge_order")
+    order_attr = f' data-badge-order="{",".join(badge_order)}"' if badge_order else ""
     self.body.append(
         f'<div class="sphinx-badge-filter" '
         f'data-filter-mode="{filter_mode}" '
-        f'data-grouped="{str(is_grouped).lower()}">'
+        f'data-grouped="{str(is_grouped).lower()}"'
+        f"{order_attr}>"
     )
     self.body.append('<div class="sphinx-badge-filter-controls">')
 

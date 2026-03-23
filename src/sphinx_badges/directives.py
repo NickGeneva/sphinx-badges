@@ -77,7 +77,7 @@ class BadgeFilterDirective(SphinxDirective):
     has_content = True
     option_spec = {
         "filter-mode": lambda x: directives.choice(x, ("and", "or")),
-        "fixed-badge-order": directives.flag,
+        "badge-order-fixed": directives.flag,
     }
 
     def run(self):
@@ -87,18 +87,12 @@ class BadgeFilterDirective(SphinxDirective):
         node["badge_ids"] = badge_ids
         node["filter_mode"] = self.options.get("filter-mode", "and")
 
-        # When :fixed-badge-order: is set, this filter's badge IDs become the
-        # canonical sort order for badges on all API pages in the build.
-        # Multiple filters with :fixed-badge-order: contribute in document-read
-        # order; first occurrence of each badge ID wins.
-        if "fixed-badge-order" in self.options:
-            if not hasattr(self.env, "badges_filter_order"):
-                self.env.badges_filter_order = []
-            existing = set(self.env.badges_filter_order)
-            for bid in badge_ids:
-                if bid not in existing:
-                    self.env.badges_filter_order.append(bid)
-                    existing.add(bid)
+        # When :badge-order-fixed: is set, store the canonical badge order on
+        # the node so the HTML visitor can emit it as a data attribute.  The JS
+        # filter widget then re-sorts each entry's badge chips to match this
+        # order rather than the docstring insertion order.
+        if "badge-order-fixed" in self.options:
+            node["badge_order"] = badge_ids
 
         # Parse the nested toctree (or any other content).
         self.state.nested_parse(self.content, self.content_offset, node)

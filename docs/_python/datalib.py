@@ -40,7 +40,7 @@ class DataProcessor:
 
         Badges
         ------
-        stability:stable area:core
+        area:core stability:stable
         """
         return data
 

@@ -235,9 +235,27 @@
       if (!entries.length) return;
 
       // ── Annotate entries with badge chips ──────────────────────────────
+      // If the widget declares a canonical badge order via data-badge-order,
+      // sort each entry's badges to match that order before rendering chips.
+      var badgeOrder = widget.dataset.badgeOrder
+        ? widget.dataset.badgeOrder.split(",")
+        : null;
+
       entries.forEach(function (entry) {
         var pageBadges = badgeData[entry.docname] || [];
         if (!pageBadges.length) return;
+
+        if (badgeOrder) {
+          pageBadges = pageBadges.slice().sort(function (a, b) {
+            var ia = badgeOrder.indexOf(a);
+            var ib = badgeOrder.indexOf(b);
+            if (ia === -1 && ib === -1) return 0;
+            if (ia === -1) return 1;
+            if (ib === -1) return -1;
+            return ia - ib;
+          });
+        }
+
         var target = entry.anchor.closest("td") || entry.anchor.parentNode;
         var wrapper = document.createElement("span");
         wrapper.className = "sphinx-entry-badges";

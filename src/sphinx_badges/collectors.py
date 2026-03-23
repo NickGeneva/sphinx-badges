@@ -25,12 +25,3 @@ def merge_badges(app, env, docnames, other):
                 if bid not in existing:
                     lst.append(bid)
                     existing.add(bid)
-
-    if hasattr(other, "badges_filter_order"):
-        if not hasattr(env, "badges_filter_order"):
-            env.badges_filter_order = []
-        existing = set(env.badges_filter_order)
-        for bid in other.badges_filter_order:
-            if bid not in existing:
-                env.badges_filter_order.append(bid)
-                existing.add(bid)

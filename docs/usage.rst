@@ -1,5 +1,5 @@
-Usage
-=====
+Userguide
+=========
 
 Installation
 ------------
@@ -95,6 +95,36 @@ Options:
    badges simultaneously.
 
    ``or`` — show entries whose page carries **any** of the active badges.
+
+``badge-order-fixed``
+   When present, the badge chips displayed next to each toctree entry or
+   autosummary row are re-sorted to match the order in which badge IDs are
+   listed on the ``.. badge-filter::`` directive, rather than the order they
+   appear in the object's docstring or RST source.
+
+   This is useful when badge IDs are written in inconsistent order across
+   docstrings.  Without this option, one entry might show
+   ``stability:beta area:core`` while another shows ``area:utils stability:stable``,
+   making the table harder to scan.  With ``:badge-order-fixed:`` every row
+   follows the same left-to-right order:
+
+   .. code-block:: rst
+
+      .. badge-filter:: area:core area:math area:utils stability:stable stability:beta
+         :filter-mode: or
+         :badge-order-fixed:
+
+         .. toctree::
+            :maxdepth: 1
+
+            api/module_a
+            api/module_b
+
+   Regardless of how each object's docstring lists its badges, the chips in
+   the table always appear in ``area:…`` then ``stability:…`` order.
+
+   Badges not mentioned in the filter list are appended after the ordered
+   ones in their original docstring order.
 
 Badge position in API blocks
 ----------------------------

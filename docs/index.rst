@@ -60,20 +60,10 @@ For more usage and configuration information
 Examples
 --------
 
-.. badge-filter:: stability:stable stability:beta stability:experimental stability:deprecated stability:new area:core area:math area:utils
-
-   .. toctree::
-      :maxdepth: 1
-      :caption: Example API Reference
-
-      api/stable_function
-      api/beta_class
-      api/experimental_module
-      api/deprecated_helper
-
 .. toctree::
    :maxdepth: 1
    :caption: Example Autodoc Reference
    
-
-   modules/api_summary.rst
+   modules/manual.rst
+   modules/auto_doc.rst
+   modules/auto_summary.rst
