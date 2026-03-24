@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sphinx-badges"
-version = "0.1.6"
+version = "0.1.7"
 authors = [{ name="Nicholas Geneva" },]
 description = "Bootstrap-style status badges for Sphinx documentation"
 readme = "README.md"
