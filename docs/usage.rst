@@ -126,6 +126,61 @@ Options:
    Badges not mentioned in the filter list are appended after the ordered
    ones in their original docstring order.
 
+``group-visibility-toggle``
+   Requires grouped mode (all badge IDs carry a ``group:name`` prefix).
+   When present, an eye icon button is rendered to the left of each group
+   label.  Clicking the button hides all badge chips belonging to that group
+   from every entry in the filter content; clicking again restores them.
+
+   This is useful when the filter has many groups and the badge chips in the
+   content area become visually noisy — readers can collapse groups they are
+   not currently interested in.
+
+   .. code-block:: rst
+
+      .. badge-filter:: area:core area:math stability:stable stability:beta
+         :group-visibility-toggle:
+
+         .. toctree::
+            :maxdepth: 1
+
+            api/module_a
+            api/module_b
+
+   .. note::
+
+      The toggle only hides the badge *chips* annotated on each entry; it
+      does not affect which entries are shown or hidden by the active filter
+      buttons.
+
+``group-hidden``
+   Space-separated list of group keys whose badge chips should be hidden
+   when the page first loads.  This is a convenience companion to
+   ``:group-visibility-toggle:`` — the named groups start in the
+   collapsed (closed-eye) state without requiring the reader to click.
+
+   .. code-block:: rst
+
+      .. badge-filter:: area:core area:math stability:stable stability:beta
+         :group-visibility-toggle:
+         :group-hidden: area
+
+         .. toctree::
+            :maxdepth: 1
+
+            api/module_a
+            api/module_b
+
+   In the example above the ``area`` group is hidden on load; the
+   ``stability`` group is visible.  Both can be toggled interactively
+   because ``:group-visibility-toggle:`` is also set.
+
+   ``:group-hidden:`` can list multiple groups separated by spaces:
+
+   .. code-block:: rst
+
+      :group-hidden: area platform
+
 Badge position in API blocks
 ----------------------------
 
@@ -196,12 +251,13 @@ above the generated table:
 Clicking a filter button hides rows whose target page does not carry the
 selected badge.  Works alongside toctree filtering on the same page.
 
-Group icons and tooltips
-------------------------
+Group labels and tooltips
+-------------------------
 
-Each group in ``badges_group_labels`` can carry an ``icon`` and a
-``tooltip``.  The icon is prepended to every badge that belongs to the
-group; the tooltip text appears when the user hovers over the badge.
+Each group in ``badges_group_labels`` can carry a ``tooltip``.  The
+tooltip text appears when the user hovers over the **group label** in the
+filter widget.  Group labels use the default pointer cursor and are not
+text-selectable, keeping them visually distinct from content text.
 
 .. code-block:: python
 
@@ -212,16 +268,25 @@ group; the tooltip text appears when the user hovers over the badge.
        },
        "area": {
            "label": "Area",
-           "icon": "📦",
            "tooltip": "Functional area",
        },
    }
 
 A plain string value (``"stability": "Stability"``) still works and is
-equivalent to omitting ``icon`` and ``tooltip``.
+equivalent to omitting ``tooltip``.
 
-With the config above, the area badges render like this (hover for the
-tooltip):
+Icons belong on individual badge definitions in ``badges_definitions``,
+not on the group.  This lets each badge in a group carry a distinct icon:
+
+.. code-block:: python
+
+   badges_definitions = {
+       "area:core": {"label": "Core", "color": "#6f42c1", "text_color": "#ffffff", "icon": "📦"},
+       "area:math": {"label": "Math", "color": "#20c997", "text_color": "#000000", "icon": "📐"},
+       "area:utils": {"label": "Utils", "color": "#fd7e14", "text_color": "#ffffff", "icon": "🔧"},
+   }
+
+With the config above, the area badges render like this:
 
 .. badges:: area:core area:math area:utils
 

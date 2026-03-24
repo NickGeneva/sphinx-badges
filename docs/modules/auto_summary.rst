@@ -51,7 +51,6 @@ appear in the object's docstring.
    .. currentmodule:: datalib
 
    .. autosummary::
-      :toctree: generated/datalib
       :nosignatures:
 
       DataProcessor
@@ -61,6 +60,39 @@ appear in the object's docstring.
       DataProcessor.merge
       DataProcessor.to_dict
       DataProcessor.filter_records
+
+Group visibility toggle
+-----------------------
+
+Adding ``:group-visibility-toggle:`` places an eye icon to the left of
+each group label.  Clicking the eye hides all badge chips for that group
+from the table rows; clicking the now-closed eye restores them.  The
+filter buttons themselves are unaffected — hiding chips never changes
+which rows are shown or hidden.
+
+The example below also uses ``:group-hidden: area`` so the ``area``
+group starts hidden on page load.  Click its eye icon to reveal the
+area chips, or use the filter buttons as normal.
+
+.. badge-filter:: area:core area:math area:utils stability:stable stability:experimental
+    stability:beta stability:deprecated stability:new
+   :filter-mode: or
+   :group-visibility-toggle:
+   :group-hidden: area
+
+   .. currentmodule:: datalib
+
+   .. autosummary::
+      :nosignatures:
+
+      DataProcessor
+      DataProcessor.run
+      DataProcessor.preview
+      DataProcessor.validate
+      DataProcessor.merge
+      DataProcessor.to_dict
+      DataProcessor.filter_records
+
 
 Grouped filter with fixed badge order
 --------------------------------------
@@ -85,6 +117,7 @@ the chips appear as ``area:core stability:beta`` — matching the
    .. currentmodule:: datalib
 
    .. autosummary::
+      :toctree: generated/datalib
       :nosignatures:
 
       DataProcessor

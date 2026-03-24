@@ -325,7 +325,13 @@
         pageBadges.forEach(function (bid) {
           var defn = badgeDefs[bid];
           if (!defn) return;
-          wrapper.appendChild(makeBadgeChip(bid, defn));
+          var chip = makeBadgeChip(bid, defn);
+          // Tag chip with its group so visibility toggles can target it.
+          var colon = bid.indexOf(":");
+          if (colon >= 0) {
+            chip.classList.add("sphinx-badge-group-" + bid.slice(0, colon));
+          }
+          wrapper.appendChild(chip);
         });
         target.appendChild(wrapper);
       });
@@ -367,6 +373,35 @@
           applyFilter(entries, activeFilters, badgeData, isGrouped, filterMode);
         });
       });
+
+      // ── Group visibility toggles (eye icon per group row) ──────────────
+      if (widget.dataset.groupVisibilityToggle === "true") {
+        var defaultHidden = widget.dataset.groupsHidden
+          ? widget.dataset.groupsHidden.split(",")
+          : [];
+
+        widget.querySelectorAll(".sphinx-badge-group-toggle").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var groupKey = btn.dataset.groupKey;
+            var isHidden = btn.getAttribute("aria-pressed") === "true";
+            // Flip state.
+            isHidden = !isHidden;
+            btn.setAttribute("aria-pressed", String(isHidden));
+            btn.title = isHidden
+              ? "Show " + groupKey + " badges"
+              : "Hide " + groupKey + " badges";
+            // Toggle visibility of every badge chip tagged with this group.
+            content.querySelectorAll(".sphinx-badge-group-" + groupKey).forEach(function (chip) {
+              chip.classList.toggle("sphinx-badge-group-hidden", isHidden);
+            });
+          });
+
+          // Apply default-hidden state for groups listed in :group-hidden:.
+          if (defaultHidden.indexOf(btn.dataset.groupKey) !== -1) {
+            btn.click();
+          }
+        });
+      }
     });
   }
 

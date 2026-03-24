@@ -78,6 +78,8 @@ class BadgeFilterDirective(SphinxDirective):
     option_spec = {
         "filter-mode": lambda x: directives.choice(x, ("and", "or")),
         "badge-order-fixed": directives.flag,
+        "group-visibility-toggle": directives.flag,
+        "group-hidden": directives.unchanged,
     }
 
     def run(self):
@@ -93,6 +95,14 @@ class BadgeFilterDirective(SphinxDirective):
         # order rather than the docstring insertion order.
         if "badge-order-fixed" in self.options:
             node["badge_order"] = badge_ids
+
+        if "group-visibility-toggle" in self.options:
+            node["group_visibility_toggle"] = True
+
+        raw_hidden = self.options.get("group-hidden", "")
+        hidden_groups = [g.strip() for g in raw_hidden.split() if g.strip()]
+        if hidden_groups:
+            node["groups_hidden"] = hidden_groups
 
         # Parse the nested toctree (or any other content).
         self.state.nested_parse(self.content, self.content_offset, node)

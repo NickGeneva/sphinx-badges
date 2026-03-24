@@ -20,6 +20,27 @@ from .roles import BadgeRole
 
 __version__ = "0.1.1"
 
+# SVG icons used by the group-visibility-toggle feature.
+_EYE_OPEN_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
+    ' fill="none" stroke="currentColor" stroke-width="2"'
+    ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>'
+    '<circle cx="12" cy="12" r="3"/>'
+    "</svg>"
+)
+_EYE_CLOSED_SVG = (
+    '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"'
+    ' fill="none" stroke="currentColor" stroke-width="2"'
+    ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8'
+    ' a18.45 18.45 0 0 1 5.06-5.94"/>'
+    '<path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8'
+    ' a18.5 18.5 0 0 1-2.16 3.19"/>'
+    '<line x1="1" y1="1" x2="23" y2="23"/>'
+    "</svg>"
+)
+
 
 def _compose_badge_content(icon: str, base_label: str) -> str:
     """Return inner HTML for a badge, wrapping text in a span when both present."""
@@ -73,18 +94,18 @@ def _get_group_config(config: Any, group_key: str) -> dict[str, str]:
     """Return normalised group config for *group_key*.
 
     ``badges_group_labels`` accepts either a plain string (display label only)
-    or a dict with optional keys ``label``, ``icon``, and ``tooltip``.
+    or a dict with optional keys ``label`` and ``tooltip``.  The ``tooltip``
+    is shown on the group label in the filter widget, not on individual badges.
     """
     raw: dict = getattr(config, "badges_group_labels", {})
     entry = raw.get(group_key)
     fallback_label = group_key.replace("_", " ").title()
     if entry is None:
-        return {"label": fallback_label, "icon": "", "tooltip": ""}
+        return {"label": fallback_label, "tooltip": ""}
     if isinstance(entry, str):
-        return {"label": entry, "icon": "", "tooltip": ""}
+        return {"label": entry, "tooltip": ""}
     return {
         "label": entry.get("label", fallback_label),
-        "icon": entry.get("icon", ""),
         "tooltip": entry.get("tooltip", ""),
     }
 
@@ -99,8 +120,8 @@ def _resolve_badge(config: Any, badge_id: str) -> dict[str, str]:
     3. built-in defaults keyed by ``'name'``
     4. auto-generated fallback (title-case of name, default colour)
 
-    Icon and tooltip fall back to the group-level config from
-    ``badges_group_labels`` when not set on the individual badge.
+    Icons and tooltips must be set directly on the individual badge in
+    ``badges_definitions``; they are not inherited from ``badges_group_labels``.
     """
     user_defs: dict = getattr(config, "badges_definitions", {})
     group, name = _parse_badge_id(badge_id)
@@ -112,9 +133,6 @@ def _resolve_badge(config: Any, badge_id: str) -> dict[str, str]:
     defn.update(user_defs.get(name, {}))  # user by name
     defn.update(user_defs.get(badge_id, {}))  # user exact
 
-    group_cfg = (
-        _get_group_config(config, group) if group else {"icon": "", "tooltip": ""}
-    )
     fallback_label = name.replace("_", " ").title() if name else badge_id
     return {
         "label": defn.get("label", fallback_label),
@@ -122,8 +140,8 @@ def _resolve_badge(config: Any, badge_id: str) -> dict[str, str]:
             "color", getattr(config, "badges_default_color", _DEFAULT_COLOR)
         ),
         "text_color": defn.get("text_color", "#ffffff"),
-        "icon": defn.get("icon", group_cfg["icon"]),
-        "tooltip": defn.get("tooltip", group_cfg["tooltip"]),
+        "icon": defn.get("icon", ""),
+        "tooltip": defn.get("tooltip", ""),
     }
 
 
@@ -170,18 +188,26 @@ def visit_badge_filter_html(self, node: badge_filter) -> None:
     badge_ids: list[str] = node.get("badge_ids", [])
     filter_mode: str = node.get("filter_mode", "and")
     badge_cls = _badge_classes(cfg)
+    group_visibility_toggle: bool = node.get("group_visibility_toggle", False)
 
     # Detect grouped mode: ALL badge IDs carry a group prefix.
     parsed = [(bid, *_parse_badge_id(bid)) for bid in badge_ids]
     is_grouped = bool(badge_ids) and all(group for _, group, _ in parsed)
 
     badge_order: list[str] | None = node.get("badge_order")
+    groups_hidden: list[str] = node.get("groups_hidden", [])
     order_attr = f' data-badge-order="{",".join(badge_order)}"' if badge_order else ""
+    toggle_attr = (
+        ' data-group-visibility-toggle="true"' if group_visibility_toggle else ""
+    )
+    hidden_attr = (
+        f' data-groups-hidden="{",".join(groups_hidden)}"' if groups_hidden else ""
+    )
     self.body.append(
         f'<div class="sphinx-badge-filter" '
         f'data-filter-mode="{filter_mode}" '
         f'data-grouped="{str(is_grouped).lower()}"'
-        f"{order_attr}>"
+        f"{order_attr}{toggle_attr}{hidden_attr}>"
     )
     self.body.append('<div class="sphinx-badge-filter-controls">')
 
@@ -194,9 +220,30 @@ def visit_badge_filter_html(self, node: badge_filter) -> None:
         for group_key, members in groups.items():
             group_cfg = _get_group_config(cfg, group_key)
             display_label = group_cfg["label"]
+            group_tooltip = group_cfg["tooltip"]
             self.body.append('<div class="sphinx-badge-filter-row">')
+            if group_visibility_toggle:
+                eye_open = (
+                    f'<span class="sphinx-badge-group-toggle-eye-open">'
+                    f"{_EYE_OPEN_SVG}</span>"
+                )
+                eye_closed = (
+                    f'<span class="sphinx-badge-group-toggle-eye-closed">'
+                    f"{_EYE_CLOSED_SVG}</span>"
+                )
+                self.body.append(
+                    f'<button class="sphinx-badge-group-toggle"'
+                    f' data-group-key="{group_key}"'
+                    f' aria-pressed="false"'
+                    f' title="Hide {display_label} badges"'
+                    f' aria-label="Toggle visibility of {display_label} badges">'
+                    f"{eye_open}{eye_closed}"
+                    f"</button>"
+                )
+            label_title = f' title="{group_tooltip}"' if group_tooltip else ""
             self.body.append(
-                f'<span class="sphinx-badge-filter-group-label">{display_label}</span>'
+                f'<span class="sphinx-badge-filter-group-label"'
+                f"{label_title}>{display_label}</span>"
             )
             for full_id, _name in members:
                 defn = _resolve_badge(cfg, full_id)

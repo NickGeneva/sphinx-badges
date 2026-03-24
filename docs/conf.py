@@ -44,7 +44,6 @@ badges_group_labels = {
     },
     "area": {
         "label": "Area",
-        "icon": "📦",
         "tooltip": "Functional area this item belongs to",
     },
     # platform group — icon-only badges (empty label shows just the icon)
@@ -78,9 +77,24 @@ badges_definitions = {
     },
     "stability:new": {"label": "New", "color": "#0d6efd", "text_color": "#ffffff"},
     # Area group
-    "area:core": {"label": "Core", "color": "#6f42c1", "text_color": "#ffffff"},
-    "area:math": {"label": "Math", "color": "#20c997", "text_color": "#000000"},
-    "area:utils": {"label": "Utils", "color": "#fd7e14", "text_color": "#ffffff"},
+    "area:core": {
+        "label": "Core",
+        "color": "#6f42c1",
+        "text_color": "#ffffff",
+        "icon": "📦",
+    },
+    "area:math": {
+        "label": "Math",
+        "color": "#20c997",
+        "text_color": "#000000",
+        "icon": "📦",
+    },
+    "area:utils": {
+        "label": "Utils",
+        "color": "#fd7e14",
+        "text_color": "#ffffff",
+        "icon": "🔧",
+    },
     # Platform group — label is empty so only the per-badge icon is shown
     "platform:python": {
         "label": "",

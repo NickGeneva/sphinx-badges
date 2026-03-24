@@ -100,6 +100,8 @@
     color: #6c757d;
     min-width: 7em;
     white-space: nowrap;
+    cursor: default;
+    user-select: none;
 }
 
 /* "Clear filters" button row — right-aligned, minimal */
@@ -175,6 +177,50 @@
 
 .sphinx-badge-filter-btn:hover {
     opacity: 1;
+}
+
+/* ── Group visibility toggle (eye icon button) ───────────────────────────── */
+
+.sphinx-badge-group-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4em;
+    height: 1.4em;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #6c757d;
+    border-radius: 0.25rem;
+    flex-shrink: 0;
+    transition: color 0.12s;
+}
+
+.sphinx-badge-group-toggle:hover {
+    color: #212529;
+}
+
+/* Show open-eye by default; swap to closed-eye when aria-pressed="true" */
+.sphinx-badge-group-toggle .sphinx-badge-group-toggle-eye-closed {
+    display: none;
+}
+
+.sphinx-badge-group-toggle[aria-pressed="true"] .sphinx-badge-group-toggle-eye-open {
+    display: none;
+}
+
+.sphinx-badge-group-toggle[aria-pressed="true"] .sphinx-badge-group-toggle-eye-closed {
+    display: inline-flex;
+}
+
+.sphinx-badge-group-toggle[aria-pressed="true"] {
+    color: #adb5bd;
+}
+
+/* Badge chips hidden by the group visibility toggle */
+.sphinx-badge-group-hidden {
+    display: none !important;
 }
 
 /* ── Items hidden by the filter (toctree li, autosummary tr, autodoc dl) ───── */
